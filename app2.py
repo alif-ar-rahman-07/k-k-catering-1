@@ -42,7 +42,7 @@ def load_gsheet_data():
 # Function to save data updates back to Google Sheets
 def save_gsheet_data(df):
     st.session_state.current_df = df
-    if APPS_SCRIPT_WEBAPP_URL != "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE":
+    if APPS_SCRIPT_WEBAPP_URL != "https://script.google.com/macros/s/AKfycbxK---0qS2M07Hz_8f9g-XXS9QZfrqaxy2fT43mvZODOwX3kf0ElkbKgIR-_BgkShbl/exec":
         try:
             payload = [df.columns.tolist()] + df.values.tolist()
             requests.post(APPS_SCRIPT_WEBAPP_URL, data=json.dumps(payload), headers={"Content-Type": "application/json"})
