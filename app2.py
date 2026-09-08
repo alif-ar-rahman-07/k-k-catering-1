@@ -165,7 +165,7 @@ total_spec_meals = int(cust_df["SpecQty"].sum()) if not cust_df.empty else 0
 total_extra_chicken = int(cust_df["ExtraChicken"].sum()) if not cust_df.empty else 0
 total_bill = (total_reg_meals * price_per_reg) + int((cust_df["SpecQty"] * cust_df["SpecPrice"]).sum()) + (total_extra_chicken * 40)
 
-col_main, col_summary = st.columns()
+col_main, col_summary = st.columns([3, 1])
 with col_main:
     st.markdown("<div style='display: flex; gap: 8px;'>", unsafe_allow_html=True)
     day_cols = st.columns(7)
