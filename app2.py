@@ -51,28 +51,75 @@ def save_gsheet_data(df):
         except Exception:
             pass
 
-# Live dynamic theme configuration setup
-if 'app_theme' not in st.session_state:
-    st.session_state.app_theme = "Deep Charcoal (Default)"
-
-theme = st.session_state.app_theme
-bg_color = "#0F1319" if theme == "Deep Charcoal (Default)" else "#18181B" if theme == "Midnight Onyx" else "#0F172A"
-card_color = "#161B26" if theme == "Deep Charcoal (Default)" else "#242427" if theme == "Midnight Onyx" else "#1E293B"
-border_color = "#232D3F" if theme == "Deep Charcoal (Default)" else "#3F3F46" if theme == "Midnight Onyx" else "#334155"
-
-st.markdown(f"""
+# Custom Premium Styling matching the exact UI theme
+st.markdown("""
     <style>
-    .stApp {{ background-color: {bg_color}; color: #E2E8F0; }}
-    .custom-section-box {{ background-color: {card_color}; border: 1px solid {border_color}; padding: 20px; border-radius: 10px; margin-bottom: 16px; }}
-    .summary-card {{ background-color: {card_color}; border-radius: 16px; padding: 24px; border: 1px solid {border_color}; }}
-    .day-node {{ flex: 1; background-color: rgba(0,0,0,0.2); border-radius: 10px; padding: 12px 6px; text-align: center; border: 1px solid {border_color}; }}
-    .day-node.active {{ border: 2px solid #3B82F6; background-color: rgba(59, 130, 246, 0.1); }}
-    .day-node .day-name {{ font-size: 12px; color: #718096; font-weight: 700; text-transform: uppercase; }}
-    .day-node .day-date {{ font-size: 18px; font-weight: 800; color: #FFFFFF; margin: 2px 0; }}
-    .badge-reg {{ background-color: rgba(59, 130, 246, 0.15); color: #3B82F6; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }}
-    .badge-spec {{ background-color: rgba(245, 158, 11, 0.15); color: #F59E0B; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }}
-    .note-indicator {{ color: #A855F7; font-size: 12px; font-weight: bold; margin-top: 4px; }}
-    .whatsapp-btn {{ background-color: #10B981 !important; color: white !important; text-align: center; padding: 14px; border-radius: 30px; font-weight: bold; display: block; text-decoration: none; margin-top: 15px; font-size: 16px; width: 100%; }}
+    .stApp { background-color: #0F1319; color: #E2E8F0; }
+    
+    /* Day Node Card Layouts */
+    .day-card-link {
+        text-decoration: none !important;
+        color: inherit !important;
+        display: block;
+    }
+    .day-node-card {
+        background-color: #161B26;
+        border: 1px solid #232D3F;
+        border-radius: 14px;
+        padding: 16px 12px;
+        text-align: center;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        min-height: 130px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .day-node-card:hover {
+        transform: translateY(-2px);
+        border-color: #3B82F6;
+    }
+    .day-node-card.active {
+        border: 2px solid #3B82F6;
+        background-color: rgba(59, 130, 246, 0.08);
+        box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+    }
+    
+    .day-name { font-size: 11px; color: #718096; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .day-date { font-size: 20px; font-weight: 800; color: #FFFFFF; margin: 4px 0; }
+    
+    /* Integrated Label Badges */
+    .badge-item {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        margin-top: 4px;
+        display: inline-block;
+        width: 85%;
+        text-align: center;
+    }
+    .badge-reg { background-color: rgba(59, 130, 246, 0.15); color: #3B82F6; }
+    .badge-spec { background-color: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+    .badge-note { background-color: rgba(168, 85, 247, 0.15); color: #A855F7; }
+    .badge-empty { height: 18px; }
+
+    .custom-section-box { background-color: #161B26; border: 1px solid #232D3F; padding: 20px; border-radius: 12px; margin-bottom: 16px; }
+    .summary-card { background-color: #171E2E; border-radius: 16px; padding: 24px; border: 1px solid #243146; }
+    .whatsapp-btn { background-color: #10B981 !important; color: white !important; text-align: center; padding: 14px; border-radius: 30px; font-weight: bold; display: block; text-decoration: none; margin-top: 15px; font-size: 16px; width: 100%; text-transform: uppercase; }
+    
+    /* Hide default streamlit button styling for card selections */
+    div[data-testid="stFormSubmitButton"] > button, div.stButton > button {
+        opacity: 0;
+        position: absolute;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+    }
+    .card-wrapper { position: relative; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -88,11 +135,11 @@ df_db = st.session_state.current_df
 customers_list = sorted(df_db["Customer"].unique().tolist())
 # Security Access Gateways UI Block
 if not st.session_state.logged_in:
-    st.markdown("<h2 style='text-align:center;'>🔐 Catering App Gateway Authentication</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align:center; margin-top:40px;'>🔐 Catering App Gateway Authentication</h2>", unsafe_allow_html=True)
     col_l, col_r = st.columns(2)
     with col_l:
         st.markdown("<div class='custom-section-box'>", unsafe_allow_html=True)
-        st.subheader("🛠️ Management / Developer Portal")
+        st.subheader("🛠️ Management Portal")
         owner_pass = st.text_input("Enter Management Pin Password", type="password")
         if st.button("Access Admin Panel", use_container_width=True):
             if owner_pass == "admin123":
@@ -105,7 +152,7 @@ if not st.session_state.logged_in:
         st.markdown("</div>", unsafe_allow_html=True)
     with col_r:
         st.markdown("<div class='custom-section-box'>", unsafe_allow_html=True)
-        st.subheader("👤 Client Tracking View Portal")
+        st.subheader("👤 Client Portal")
         client_user = st.selectbox("Select Your Profile Name", options=customers_list)
         if st.button("Open My Tracking Dashboard", use_container_width=True):
             st.session_state.logged_in = True
@@ -123,13 +170,6 @@ if st.sidebar.button("🔒 Sign Out / Exit Profile"):
 is_owner = (st.session_state.user_role == "owner")
 
 if is_owner:
-    st.sidebar.markdown("### ⚙️ Developer Settings Control Panel")
-    selected_theme = st.sidebar.selectbox("Live Web Dashboard Theme Color", ["Deep Charcoal (Default)", "Midnight Onyx", "Slate Matrix"])
-    if selected_theme != st.session_state.app_theme:
-        st.session_state.app_theme = selected_theme
-        st.rerun()
-
-if is_owner:
     if 'selected_customer_idx' not in st.session_state or st.session_state.selected_customer_idx >= len(customers_list):
         st.session_state.selected_customer_idx = 0
     customer = customers_list[st.session_state.selected_customer_idx]
@@ -144,80 +184,104 @@ cust_df = df_db[df_db["Customer"] == customer]
 phone_num = str(cust_df["Phone"].iloc[0]) if not cust_df.empty else ""
 price_per_reg = int(cust_df["BasePrice"].iloc[0]) if not cust_df.empty else 120
 
-# 📊 REVENUE GRAPH ENGINE
-if is_owner:
-    st.markdown("<p style='color: #3B82F6; font-weight: bold; margin-bottom: 0px;'>OWNER / SYSTEM DEVELOPER SUITE</p>", unsafe_allow_html=True)
-    st.markdown("<h2 style='margin-top: 0px; color: white;'>Live Analytics & Revenue Tracker</h2>", unsafe_allow_html=True)
-    revenue_records = []
-    for c_name in customers_list:
-        c_data = df_db[df_db["Customer"] == c_name]
-        c_base = int(c_data["BasePrice"].iloc[0]) if not c_data.empty else 120
-        c_total = (int(c_data["RegQty"].sum()) * c_base) + int((c_data["SpecQty"] * c_data["SpecPrice"]).sum()) + (int(c_data["ExtraChicken"].sum()) * 40)
-        revenue_records.append({"Client Profile Name": c_name, "Weekly Revenue (Tk)": c_total})
-    st.bar_chart(data=pd.DataFrame(revenue_records), x="Client Profile Name", y="Weekly Revenue (Tk)", color="#3B82F6", use_container_width=True)
-    st.markdown("<hr>", unsafe_allow_html=True)
-else:
-    st.markdown("<p style='color: #10B981; font-weight: bold; margin-bottom: 0px;'>🔒 CLIENT MONITORING DASHBOARD (LOCKED VIEW-ONLY)</p>", unsafe_allow_html=True)
-    st.markdown(f"<h2 style='margin-top: 0px; color: white;'>Weekly Tracking History for {customer}</h2>", unsafe_allow_html=True)
+# Title Headers
+st.markdown("<p style='color: #3B82F6; font-weight: bold; margin-bottom: 0px;'>SEPTEMBER 2026 <span style='color:#64748B; font-weight:normal;'>• Cycle Mapping frame: Sat → Fri</span></p>", unsafe_allow_html=True)
+st.markdown("<h2 style='margin-top: 0px; color: white;'>Customer Cycle Mapping Invoice Generator</h2>", unsafe_allow_html=True)
+st.markdown(f"<p style='color: #94A3B8; font-size: 14px; margin-bottom: 25px;'>Current profile: <span style='color:#FFF; font-weight:600;'>{customer}</span> (• Base Price: {price_per_reg} Tk)</p>", unsafe_allow_html=True)
 
 total_reg_meals = int(cust_df["RegQty"].sum()) if not cust_df.empty else 0
 total_spec_meals = int(cust_df["SpecQty"].sum()) if not cust_df.empty else 0
 total_extra_chicken = int(cust_df["ExtraChicken"].sum()) if not cust_df.empty else 0
 total_bill = (total_reg_meals * price_per_reg) + int((cust_df["SpecQty"] * cust_df["SpecPrice"]).sum()) + (total_extra_chicken * 40)
 
+# 📅 NEW BORDERLESS DYNAMIC SELECTION CARD GRID
 col_main, col_summary = st.columns([3, 1])
+
 with col_main:
-    st.markdown("<div style='display: flex; gap: 8px;'>", unsafe_allow_html=True)
     day_cols = st.columns(7)
     for idx, day_id in enumerate(DAYS_KEYS):
         with day_cols[idx]:
             day_name, day_num = day_id.split()
             day_row = cust_df[cust_df["Day"] == day_id] if not cust_df.empty else pd.DataFrame()
+            
             reg_q = int(day_row["RegQty"].iloc[0]) if not day_row.empty else 0
             spec_q = int(day_row["SpecQty"].iloc[0]) if not day_row.empty else 0
-            has_note = str(day_row["OrderNotes"].iloc[0]).strip() != "" if not day_row.empty and "OrderNotes" in day_row.columns else False
+            has_note = str(day_row["OrderNotes"].iloc[0]).strip() != "" if not day_row.empty and "OrderNotes" in day_row.columns and not pd.isna(day_row["OrderNotes"].iloc[0]) else False
             
             is_active = (current_day == day_id)
             active_class = "active" if is_active else ""
-            badge_str = "<div style='height:21px;'></div>"
-            if spec_q > 0: badge_str = f"<div class='badge-spec'>Spc {spec_q}</div>"
-            elif reg_q > 0: badge_str = f"<div class='badge-reg'>Reg {reg_q}</div>"
-            note_str = "<div class='note-indicator'>📝 Note</div>" if has_note else ""
             
-            st.markdown(f'<div class="day-node {active_class}"><div class="day-name">{day_name}</div><div class="day-date">{day_num}</div><div style="margin-top:6px;">{badge_str}</div>{note_str}</div>', unsafe_allow_html=True)
-            if st.button("Select", key=f"btn_{day_id}", use_container_width=True):
+            # Badge generation matching design requirement colors
+            badge_html = ""
+            if spec_q > 0:
+                badge_html += f"<div class='badge-item badge-spec'>Spc {spec_q}</div>"
+            elif reg_q > 0:
+                badge_html += f"<div class='badge-item badge-reg'>Reg {reg_q}</div>"
+            else:
+                badge_html += "<div class='badge-empty'></div>"
+                
+            if has_note:
+                badge_html += "<div class='badge-item badge-note'>📝 Note</div>"
+                
+            # Render HTML Node card container layout frame maps
+            st.markdown(f"""
+                <div class="card-wrapper">
+                    <div class="day-node-card {active_class}">
+                        <div class="day-name">{day_name}</div>
+                        <div class="day-date">{day_num}</div>
+                        <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                            {badge_html}
+                        </div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # Invisible button layer overlaying the custom HTML card to intercept direct tap events
+            if st.button("", key=f"btn_click_{day_id}"):
                 st.session_state.selected_day = day_id
                 st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+                
     st.markdown("<br>", unsafe_allow_html=True)
     
     if is_owner:
-        chosen_customer = st.selectbox("Switch Customer View", options=customers_list, index=customers_list.index(customer))
-        if chosen_customer != customer:
-            st.session_state.selected_customer_idx = customers_list.index(chosen_customer)
-            st.rerun()
+        c_p, c_r = st.columns(2)
+        with c_p:
+            chosen_customer = st.selectbox("Customer Profile", options=customers_list, index=customers_list.index(customer))
+            if chosen_customer != customer:
+                st.session_state.selected_customer_idx = customers_list.index(chosen_customer)
+                st.rerun()
+        with c_r:
+            rate_idx = AVAILABLE_RATES.index(price_per_reg) if price_per_reg in AVAILABLE_RATES else 2
+            new_rate = st.selectbox("Per-Meal Price (Tk)", options=AVAILABLE_RATES, index=rate_idx, format_func=lambda x: f"{x} Tk")
+            if new_rate != price_per_reg:
+                df_db.loc[df_db["Customer"] == customer, "BasePrice"] = new_rate
+                save_gsheet_data(df_db)
+                st.rerun()
 
 with col_summary:
     st.markdown(f"""
         <div class="summary-card">
-            <p style="color: #64748B; font-weight: bold; font-size: 13px; text-transform: uppercase; margin-bottom: 12px;">Cycle Aggregates</p>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color:#94A3B8;">Regular meals:</span><span style="color:white; font-weight:bold;">{total_reg_meals} pcs</span></div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color:#94A3B8;">Special meals:</span><span style="color:white; font-weight:bold;">{total_spec_meals} pcs</span></div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 16px;"><span style="color:#94A3B8;">Extra Chicken:</span><span style="color:white; font-weight:bold;">{total_extra_chicken} pcs</span></div>
-            <div style="border-top:1px solid {border_color}; padding-top:12px; display:flex; justify-content:space-between; margin-bottom:15px;"><span style="color: white; font-weight: bold;">Total Bill Statement:</span><span style="color: #10B981; font-weight: 800; font-size: 24px;">{total_bill} Tk</span></div>
+            <p style="color: #64748B; font-weight: bold; font-size: 13px; text-transform: uppercase; margin-bottom: 12px;">Cycle Summary</p>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color:#94A3B8;">Regular meals total:</span><span style="color:white; font-weight:bold;">{total_reg_meals} pcs</span></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color:#94A3B8;">Special meals total:</span><span style="color:white; font-weight:bold;">{total_spec_meals} pcs</span></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 16px;"><span style="color:#94A3B8;">Extra Chicken protein:</span><span style="color:white; font-weight:bold;">{total_extra_chicken} pcs</span></div>
+            <div style="border-top:1px solid #243146; padding-top:12px; display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#94A3B8;">Base rate applied:</span><span style="color:#3B82F6; font-weight:bold;">{price_per_reg} Tk</span></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;"><span style="color: white; font-weight: bold; font-size: 16px;">Total Bill:</span><span style="color: #10B981; font-weight: 800; font-size: 24px;">{total_bill} Tk</span></div>
+            <button style="width:100%; background-color:#2563EB; border:none; color:white; padding:10px; border-radius:8px; font-weight:bold;">Export Dashboard</button>
         </div>
     """, unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
-st.markdown(f"<h3>Selected Schedule Details • <span style='color:#3B82F6;'>{current_day.upper()}</span></h3>", unsafe_allow_html=True)
+# 🛠️ DYNAMIC DAY CONFIGURATION DATAFRAME PARAMS
+st.markdown("<br><hr>", unsafe_allow_html=True)
+st.markdown(f"<h3>Daily Parameters Grid • <span style='color:#3B82F6;'>{current_day.upper()} Config</span></h3>", unsafe_allow_html=True)
 
 day_mask = (df_db["Customer"] == customer) & (df_db["Day"] == current_day)
 active_row = df_db[day_mask]
-curr_note = str(active_row["OrderNotes"].iloc[0]) if not active_row.empty and "OrderNotes" in active_row.columns else ""
+curr_note = str(active_row["OrderNotes"].iloc[0]) if not active_row.empty and "OrderNotes" in active_row.columns and not pd.isna(active_row["OrderNotes"].iloc[0]) else ""
 
 if is_owner:
     st.markdown("<div class='custom-section-box' style='border-left: 4px solid #A855F7;'>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#A855F7; font-weight:bold; font-size:12px; text-transform:uppercase; margin-bottom:4px;'>🛠️ Special Order Note Tool</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#A855F7; font-weight:bold; font-size:12px; text-transform:uppercase; margin-bottom:4px;'>📝 Special Order Note Tool</p>", unsafe_allow_html=True)
     new_note = st.text_input("Tap to write custom update notes for this client's day entry", value=curr_note, placeholder="e.g. Extra spicy, holiday cancel...")
     if new_note != curr_note and not active_row.empty:
         df_db.loc[day_mask, "OrderNotes"] = new_note
@@ -228,6 +292,7 @@ elif curr_note.strip() != "":
     st.markdown(f"<div class='custom-section-box' style='border-left: 4px solid #A855F7;'><p style='color:#A855F7; font-weight:bold; font-size:12px;'>📝 OWNER ORDER NOTE</p><p style='color:white; font-style:italic; margin-bottom:0;'>\"{curr_note}\"</p></div>", unsafe_allow_html=True)
 
 if is_owner:
+    # 1. Safely extract values only if data rows exist in memory
     if not active_row.empty:
         curr_reg = int(active_row["RegQty"].iloc[0])
         curr_spec = int(active_row["SpecQty"].iloc[0])
@@ -235,45 +300,66 @@ if is_owner:
         curr_extra = int(active_row["ExtraChicken"].iloc[0])
     else:
         curr_reg, curr_spec, curr_spec_p, curr_extra = 0, 0, 150, 0
-        
+
+    # 2. Regular Meals Input Box Container Layout
     st.markdown("<div class='custom-section-box'>", unsafe_allow_html=True)
-    new_reg = st.number_input("Regular Quantity count input", min_value=0, value=curr_reg, key=f"r_edit_{current_day}")
-    if new_reg != curr_reg:
+    st.markdown("<p style='color:#3B82F6; font-weight:bold; font-size:12px; text-transform:uppercase;'>Regular Meals Config</p>", unsafe_allow_html=True)
+    new_reg = st.number_input("Quantity Regular", min_value=0, value=curr_reg, key=f"r_edit_{current_day}")
+    if new_reg != curr_reg and not active_row.empty:
         df_db.loc[day_mask, "RegQty"] = new_reg
-        if new_reg > 0: df_db.loc[day_mask, "SpecQty"] = 0
+        if new_reg > 0: 
+            df_db.loc[day_mask, "SpecQty"] = 0
         save_gsheet_data(df_db)
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
+    # 3. Special Section Inputs Box Container Layout
     st.markdown("<div class='custom-section-box'>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#F59E0B; font-weight:bold; font-size:12px; text-transform:uppercase;'>Special Section Config</p>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
-        new_spec = st.number_input("Special Quantity count input", min_value=0, value=curr_spec, key=f"s_edit_{current_day}")
-        if new_spec != curr_spec:
+        new_spec = st.number_input("Quantity Special", min_value=0, value=curr_spec, key=f"s_edit_{current_day}")
+        if new_spec != curr_spec and not active_row.empty:
             df_db.loc[day_mask, "SpecQty"] = new_spec
-            if new_spec > 0: df_db.loc[day_mask, "RegQty"] = 0
+            if new_spec > 0: 
+                df_db.loc[day_mask, "RegQty"] = 0
             save_gsheet_data(df_db)
             st.rerun()
     with c2:
-        new_spec_p = st.number_input("Special meal specific unit pricing", min_value=0, value=curr_spec_p, key=f"sp_edit_{current_day}")
-        if new_spec_p != curr_spec_p:
+        new_spec_p = st.number_input("Custom Special Price (Tk)", min_value=0, value=curr_spec_p, key=f"sp_edit_{current_day}")
+        if new_spec_p != curr_spec_p and not active_row.empty:
             df_db.loc[day_mask, "SpecPrice"] = new_spec_p
-        save_gsheet_data(df_db)
-        st.rerun()
-    st.markdown("", unsafe_allow_html=True)
-    st.markdown("", unsafe_allow_html=True)
-    new_extra = st.number_input("Extra chicken pieces item inputs", min_value=0, value=curr_extra, key=f"e_edit_{current_day}")
-    if new_extra != curr_extra:
+            save_gsheet_data(df_db)
+            st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
+    # 4. Extra Chicken Box Container Layout
+    st.markdown("<div class='custom-section-box'>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#10B981; font-weight:bold; font-size:12px; text-transform:uppercase;'>Extra Chicken Protein Add-Ons</p>", unsafe_allow_html=True)
+    new_extra = st.number_input("Quantity Extra", min_value=0, value=curr_extra, key=f"e_edit_{current_day}")
+    if new_extra != curr_extra and not active_row.empty:
         df_db.loc[day_mask, "ExtraChicken"] = new_extra
         save_gsheet_data(df_db)
         st.rerun()
-    st.markdown("", unsafe_allow_html=True)
-    st.markdown("", unsafe_allow_html=True)
-    invoice_msg = f"Catering Invoice - {customer}\n• Regular Meals: {total_reg_meals} pcs\n• Special Meals: {total_spec_meals} pcs\n• Extra Chicken: {total_extra_chicken} pcs\nTotal Due: {total_bill} Tk"
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # 5. Live Message Display and Official WhatsApp API Send Button
+    st.markdown("<div class='custom-section-box'>", unsafe_allow_html=True)
+    invoice_msg = f"*Catering Invoice - {customer}*\n• Regular Meals: {total_reg_meals} pcs\n• Special Meals: {total_spec_meals} pcs\n• Extra Chicken: {total_extra_chicken} pcs\n*Total Due: {total_bill} Tk*"
     st.text_area("Live Message Payload Preview", value=invoice_msg, height=100, disabled=True)
-    whatsapp_link = f"wa.me{phone_num.replace('+', '').replace(' ', '')}?text={urllib.parse.quote(invoice_msg)}"
-    st.markdown(f'➤ Open WhatsApp API Link', unsafe_allow_html=True)
-    st.markdown("", unsafe_allow_html=True)
+    
+    clean_phone = phone_num.replace('+', '').replace(' ', '').replace('-', '')
+    whatsapp_link = f"https://wa.me{clean_phone}?text={urllib.parse.quote(invoice_msg)}"
+    st.markdown(f'<a href="{whatsapp_link}" target="_blank" class="whatsapp-btn">➤ Open WhatsApp API Link</a>', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
 else:
+    # 6. View-Only Layout for clients logging into the system
     if not active_row.empty:
-        st.markdown(f"📊 Delivered Order Record for Today• Regular Meals Delivered: {active_row['RegQty'].iloc[0]} pcs• Special Meals Delivered: {active_row['SpecQty'].iloc[0]} pcs (Price: {active_row['SpecPrice'].iloc[0]} Tk)• Extra Chicken Pieces Added: {active_row['ExtraChicken'].iloc[0]} pieces", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div class='custom-section-box'>
+                <p style='color:#3B82F6; font-weight:bold; margin-bottom:4px;'>📊 Delivered Order Record for Today</p>
+                • Regular Meals Delivered: <b>{active_row['RegQty'].iloc[0]} pcs</b><br>
+                • Special Meals Delivered: <b>{active_row['SpecQty'].iloc[0]} pcs</b> (Price: {active_row['SpecPrice'].iloc[0]} Tk)<br>
+                • Extra Chicken Pieces Added: <b>{active_row['ExtraChicken'].iloc[0]} pieces</b>
+            </div>
+        """, unsafe_allow_html=True)
