@@ -131,6 +131,7 @@ if 'current_df' not in st.session_state:
 
 df_db = st.session_state.current_df
 customers_list = sorted(df_db["Customer"].unique().tolist())
+
 # Security Access Gateways UI Block -
 if not st.session_state.logged_in:
     st.markdown("<h2 style='text-align:center; margin-top:40px;'>🔐 Catering App Gateway Authentication</h2>", unsafe_allow_html=True)
@@ -139,38 +140,50 @@ if not st.session_state.logged_in:
     with col_l:
         st.markdown("<div class='custom-section-box'>", unsafe_allow_html=True)
         st.subheader("🛠️ Management Portal")
-        owner_pass = st.text_input("Enter Management Pin Password", type="password", key="owner_password_input")
         
-        # Explicitly rendered visible button to capture phone tap events smoothly
-        if st.button("Unlock Admin Panel Mode", key="admin_submit_btn", use_container_width=True):
-            if owner_pass == "admin123":
-                st.session_state.logged_in = True
-                st.session_state.user_role = "owner"
-                st.session_state.selected_customer_idx = 0
-                st.rerun()
-            else:
-                st.error("Incorrect portal pin access password entered.")
+        # Wrapped inside a Form block to lock the values down firmly on button click
+        with st.form("admin_login_form", clear_on_submit=False):
+            st.text_input("Enter Management Pin Password", type="password", key="owner_password_input")
+            submit_admin = st.form_submit_button("Unlock Admin Panel Mode", use_container_width=True)
+            
+            if submit_admin:
+                # Target the password string directly from state dictionary storage
+                if st.session_state.owner_password_input == "admin123":
+                    st.session_state.logged_in = True
+                    st.session_state.user_role = "owner"
+                    st.session_state.selected_customer_idx = 0
+                    st.success("Access Granted!")
+                    st.rerun()
+                else:
+                    st.error("Incorrect portal pin access password entered.")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_r:
         st.markdown("<div class='custom-section-box'>", unsafe_allow_html=True)
         st.subheader("👤 Client Portal")
-        client_user = st.selectbox("Select Your Profile Name", options=customers_list, key="client_profile_select")
         
-        if st.button("Unlock Client View Mode", key="client_submit_btn", use_container_width=True):
-            st.session_state.logged_in = True
-            st.session_state.user_role = "customer"
-            st.session_state.selected_customer = client_user
-            st.rerun()
+        with st.form("client_login_form"):
+            client_user = st.selectbox("Select Your Profile Name", options=customers_list, key="client_profile_select")
+            submit_client = st.form_submit_button("Unlock Client View Mode", use_container_width=True)
+            
+            if submit_client:
+                st.session_state.logged_in = True
+                st.session_state.user_role = "customer"
+                st.session_state.selected_customer = client_user
+                st.success(f"Welcome {client_user}!")
+                st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
+# Sign Out Operations Handler Box 
 if st.sidebar.button("🔒 Sign Out / Exit Profile"):
     st.session_state.logged_in = False
     st.session_state.user_role = None
+    st.session_state.selected_customer = None
     st.rerun()
 
 is_owner = (st.session_state.user_role == "owner")
+
 
 if is_owner:
     if 'selected_customer_idx' not in st.session_state or st.session_state.selected_customer_idx >= len(customers_list):
