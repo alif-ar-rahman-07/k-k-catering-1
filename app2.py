@@ -181,34 +181,57 @@ if st.sidebar.button("🔒 Sign Out / Exit Profile"):
     st.session_state.user_role = None
     st.session_state.selected_customer = None
     st.rerun()
-
+    
 is_owner = (st.session_state.user_role == "owner")
 
 
+# Safely extract customer profile names based on permission levels
 if is_owner:
     if 'selected_customer_idx' not in st.session_state or st.session_state.selected_customer_idx >= len(customers_list):
         st.session_state.selected_customer_idx = 0
-    customer = customers_list[st.session_state.selected_customer_idx]
+    # Guard clause in case customers_list is completely empty
+    customer = customers_list[st.session_state.selected_customer_idx] if customers_list else "Default Profile"
 else:
-    customer = st.session_state.selected_customer
+    # Read the client login state session key
+    customer = st.session_state.get("selected_customer", "Default Profile")
 
 if 'selected_day' not in st.session_state:
     st.session_state.selected_day = "Sat 05"
 current_day = st.session_state.selected_day
 
+# Filter down database records safely matching target queries
 cust_df = df_db[df_db["Customer"] == customer]
-phone_num = str(cust_df["Phone"].iloc[0]) if not cust_df.empty else ""
-price_per_reg = int(cust_df["BasePrice"].iloc[0]) if not cust_df.empty else 120
 
-# Title Headers
+# Fixed: Explicitly handle empty dataframes using safe column extraction fallbacks
+if not cust_df.empty:
+    phone_num = str(cust_df["Phone"].iloc[0]) if "Phone" in cust_df.columns and not cust_df["Phone"].isna().all() else ""
+    price_per_reg = int(cust_df["BasePrice"].iloc[0]) if "BasePrice" in cust_df.columns and not cust_df["BasePrice"].isna().all() else 120
+    
+    total_reg_meals = int(cust_df["RegQty"].sum()) if "RegQty" in cust_df.columns else 0
+    total_spec_meals = int(cust_df["SpecQty"].sum()) if "SpecQty" in cust_df.columns else 0
+    total_extra_chicken = int(cust_df["ExtraChicken"].sum()) if "ExtraChicken" in cust_df.columns else 0
+    
+    # Safely compute special pricing multiplications mapping row values properly
+    spec_prices = cust_df["SpecPrice"] if "SpecPrice" in cust_df.columns else 150
+    spec_quantities = cust_df["SpecQty"] if "SpecQty" in cust_df.columns else 0
+    total_spec_cost = int((spec_quantities * spec_prices).sum())
+    
+    total_bill = (total_reg_meals * price_per_reg) + total_spec_cost + (total_extra_chicken * 40)
+else:
+    # Absolute generic safety fallback configurations to prevent client app crashes
+    phone_num = ""
+    price_per_reg = 120
+    total_reg_meals = 0
+    total_spec_meals = 0
+    total_extra_chicken = 0
+    total_bill = 0
+
+# Title Headers Rendering UI
 st.markdown("<p style='color: #3B82F6; font-weight: bold; margin-bottom: 0px;'>SEPTEMBER 2026 <span style='color:#64748B; font-weight:normal;'>• Cycle Mapping frame: Sat → Fri</span></p>", unsafe_allow_html=True)
 st.markdown("<h2 style='margin-top: 0px; color: white;'>Customer Cycle Mapping Invoice Generator</h2>", unsafe_allow_html=True)
 st.markdown(f"<p style='color: #94A3B8; font-size: 14px; margin-bottom: 25px;'>Current profile: <span style='color:#FFF; font-weight:600;'>{customer}</span> (• Base Price: {price_per_reg} Tk)</p>", unsafe_allow_html=True)
 
-total_reg_meals = int(cust_df["RegQty"].sum()) if not cust_df.empty else 0
-total_spec_meals = int(cust_df["SpecQty"].sum()) if not cust_df.empty else 0
-total_extra_chicken = int(cust_df["ExtraChicken"].sum()) if not cust_df.empty else 0
-total_bill = (total_reg_meals * price_per_reg) + int((cust_df["SpecQty"] * cust_df["SpecPrice"]).sum()) + (total_extra_chicken * 40)
+
 
 # 📅 NEW BORDERLESS DYNAMIC SELECTION CARD GRID
 col_main, col_summary = st.columns([3, 1])
