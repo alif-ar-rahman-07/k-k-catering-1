@@ -162,15 +162,20 @@ if not st.session_state.logged_in:
         st.markdown("<div class='custom-section-box'>", unsafe_allow_html=True)
         st.subheader("👤 Client Portal")
         
-        with st.form("client_login_form"):
-            client_user = st.selectbox("Select Your Profile Name", options=customers_list, key="client_profile_select")
+        with st.form("client_login_form", clear_on_submit=False):
+            # Assigned standard default key identifier strings
+            st.selectbox("Select Your Profile Name", options=customers_list, key="client_profile_select")
             submit_client = st.form_submit_button("Unlock Client View Mode", use_container_width=True)
             
             if submit_client:
+                # Fixed: Capture explicitly from session state storage dictionary instead of temporary widget variable
+                selected_name = st.session_state.client_profile_select
+                
                 st.session_state.logged_in = True
                 st.session_state.user_role = "customer"
-                st.session_state.selected_customer = client_user
-                st.success(f"Welcome {client_user}!")
+                st.session_state.selected_customer = selected_name
+                
+                st.success(f"Welcome {selected_name}!")
                 st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
@@ -183,6 +188,7 @@ if st.sidebar.button("🔒 Sign Out / Exit Profile"):
     st.rerun()
     
 is_owner = (st.session_state.user_role == "owner")
+
 
 # Safely extract customer profile names based on permission levels
 if is_owner:
