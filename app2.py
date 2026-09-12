@@ -10,7 +10,7 @@ st.set_page_config(page_title="Catering Management Suite", page_icon="🍲", lay
 # =====================================================================
 # 🛠️ SYSTEM CONNECTORS: PASTE YOUR GOOGLE SHEET LINKS HERE
 # =====================================================================
-SPREADSHEET_ID = "1cdB_oR7HrbL-mTJ1wb58eaU_kFcUuCmeXtbI0gJYKXw"
+SPREADSHEET_ID = "AKfycbxK---0qS2M07Hz_8f9g-XXS9QZfrqaxy2fT43mvZODOwX3kf0ElkbKgIR-_BgkShbl"
 APPS_SCRIPT_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxK---0qS2M07Hz_8f9g-XXS9QZfrqaxy2fT43mvZODOwX3kf0ElkbKgIR-_BgkShbl/exec"
 # =====================================================================
 
@@ -184,15 +184,12 @@ if st.sidebar.button("🔒 Sign Out / Exit Profile"):
     
 is_owner = (st.session_state.user_role == "owner")
 
-
 # Safely extract customer profile names based on permission levels
 if is_owner:
     if 'selected_customer_idx' not in st.session_state or st.session_state.selected_customer_idx >= len(customers_list):
         st.session_state.selected_customer_idx = 0
-    # Guard clause in case customers_list is completely empty
     customer = customers_list[st.session_state.selected_customer_idx] if customers_list else "Default Profile"
 else:
-    # Read the client login state session key
     customer = st.session_state.get("selected_customer", "Default Profile")
 
 if 'selected_day' not in st.session_state:
@@ -202,23 +199,25 @@ current_day = st.session_state.selected_day
 # Filter down database records safely matching target queries
 cust_df = df_db[df_db["Customer"] == customer]
 
-# Fixed: Explicitly handle empty dataframes using safe column extraction fallbacks
 if not cust_df.empty:
-    phone_num = str(cust_df["Phone"].iloc[0]) if "Phone" in cust_df.columns and not cust_df["Phone"].isna().all() else ""
-    price_per_reg = int(cust_df["BasePrice"].iloc[0]) if "BasePrice" in cust_df.columns and not cust_df["BasePrice"].isna().all() else 120
+    # Fixed: Safely capture the first instance for single-row profile variables
+    phone_num = str(cust_df["Phone"].values[0]) if "Phone" in cust_df.columns else ""
+    price_per_reg = int(cust_df["BasePrice"].values[0]) if "BasePrice" in cust_df.columns else 120
     
+    # Safely group and sum metrics across all tracking days
     total_reg_meals = int(cust_df["RegQty"].sum()) if "RegQty" in cust_df.columns else 0
     total_spec_meals = int(cust_df["SpecQty"].sum()) if "SpecQty" in cust_df.columns else 0
     total_extra_chicken = int(cust_df["ExtraChicken"].sum()) if "ExtraChicken" in cust_df.columns else 0
     
-    # Safely compute special pricing multiplications mapping row values properly
-    spec_prices = cust_df["SpecPrice"] if "SpecPrice" in cust_df.columns else 150
-    spec_quantities = cust_df["SpecQty"] if "SpecQty" in cust_df.columns else 0
-    total_spec_cost = int((spec_quantities * spec_prices).sum())
-    
+    # Compute running special meal item costs by evaluating rows dynamically
+    if "SpecQty" in cust_df.columns and "SpecPrice" in cust_df.columns:
+        total_spec_cost = int((cust_df["SpecQty"] * cust_df["SpecPrice"]).sum())
+    else:
+        total_spec_cost = total_spec_meals * 150
+        
     total_bill = (total_reg_meals * price_per_reg) + total_spec_cost + (total_extra_chicken * 40)
 else:
-    # Absolute generic safety fallback configurations to prevent client app crashes
+    # Absolute safety fallbacks to prevent screen crashes
     phone_num = ""
     price_per_reg = 120
     total_reg_meals = 0
@@ -226,11 +225,10 @@ else:
     total_extra_chicken = 0
     total_bill = 0
 
-# Title Headers Rendering UI
+# Title Headers Rendering UI Panel Layout
 st.markdown("<p style='color: #3B82F6; font-weight: bold; margin-bottom: 0px;'>SEPTEMBER 2026 <span style='color:#64748B; font-weight:normal;'>• Cycle Mapping frame: Sat → Fri</span></p>", unsafe_allow_html=True)
 st.markdown("<h2 style='margin-top: 0px; color: white;'>Customer Cycle Mapping Invoice Generator</h2>", unsafe_allow_html=True)
 st.markdown(f"<p style='color: #94A3B8; font-size: 14px; margin-bottom: 25px;'>Current profile: <span style='color:#FFF; font-weight:600;'>{customer}</span> (• Base Price: {price_per_reg} Tk)</p>", unsafe_allow_html=True)
-
 
 
 # 📅 NEW BORDERLESS DYNAMIC SELECTION CARD GRID
